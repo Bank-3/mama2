@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PDF Download — Please wait...</title>
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --accent:#e11d48; /* PDF red */
+      --muted:#94a3b8;
+      --glass: rgba(255,255,255,0.04);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: radial-gradient(1200px 600px at 10% 10%, rgba(17,24,39,0.6), transparent),
+                  radial-gradient(900px 400px at 90% 90%, rgba(14,165,233,0.06), transparent),
+                  var(--bg);
+      color:#fff;
+    }
+
+    .card{
+      width:340px;
+      padding:28px;
+      border-radius:14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+      text-align:center;
+      backdrop-filter: blur(6px);
+    }
+
+    .pdf-blob{
+      width:120px;
+      height:120px;
+      margin:0 auto 14px;
+      position:relative;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    /* PDF icon (paper + red corner + "PDF") */
+    .pdf-icon{
+      width:86px;
+      height:110px;
+      border-radius:6px;
+      background:linear-gradient(180deg,#fff,#f7f7f7);
+      box-shadow: 0 6px 18px rgba(2,6,23,0.35);
+      position:relative;
+      overflow:visible;
+      transform-origin:center;
+      animation: float 2.6s ease-in-out infinite;
+    }
+    .pdf-icon::after{
+      /* red folded corner */
+      content:"";
+      position:absolute;
+      right:0;
+      top:0;
+      width:36px;
+      height:36px;
+      background:var(--accent);
+      border-top-right-radius:6px;
+      clip-path: polygon(0 0, 100% 0, 100% 100%);
+      transform: skew(-12deg);
+      box-shadow: inset -4px -4px 8px rgba(255,255,255,0.06);
+    }
+    .pdf-label{
+      position:absolute;
+      bottom:10px;
+      left:0;
+      right:0;
+      font-weight:700;
+      color:#c0262d;
+      font-size:13px;
+      letter-spacing:0.6px;
+    }
+    @keyframes float {
+      0%{ transform:translateY(0) rotate(0deg) }
+      50%{ transform:translateY(-6px) rotate(-1deg) }
+      100%{ transform:translateY(0) rotate(0deg) }
+    }
+
+    /* download arrow circle */
+    .arrow-wrap{
+      position:absolute;
+      left:calc(50% - 18px);
+      bottom:-12px;
+      width:36px;
+      height:36px;
+      border-radius:50%;
+      background:var(--glass);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:1px solid rgba(255,255,255,0.04);
+      box-shadow: 0 6px 16px rgba(2,6,23,0.4);
+    }
+    .arrow{
+      width:14px;
+      height:14px;
+      display:block;
+      transform-origin:center;
+      animation: drop 1.3s ease-in-out infinite;
+    }
+    @keyframes drop{
+      0%{ transform:translateY(-6px); opacity:0.2 }
+      40%{ transform:translateY(0); opacity:1 }
+      80%{ transform:translateY(4px); opacity:0.6 }
+      100%{ transform:translateY(-6px); opacity:0.2 }
+    }
+
+    .title{
+      font-size:18px;
+      margin:6px 0 4px;
+      color:#fff;
+      font-weight:600;
+    }
+    .sub{
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:16px;
+    }
+
+    /* Progress bar */
+    .progress{
+      width:100%;
+      height:12px;
+      background: rgba(255,255,255,0.04);
+      border-radius:999px;
+      overflow:hidden;
+      position:relative;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+      margin-bottom:14px;
+    }
+    .progress > i{
+      display:block;
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg,var(--accent), #fb7185);
+      border-radius:999px;
+      transition: width 400ms linear;
+      box-shadow: 0 6px 18px rgba(225,29,72,0.14), inset 0 -6px 18px rgba(255,255,255,0.03);
+    }
+
+    /* Please wait text */
+    .please{
+      font-weight:600;
+      letter-spacing:0.2px;
+      margin-top:6px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      color:#f8fafc;
+    }
+    .dots{
+      display:inline-block;
+      width:36px;
+      text-align:left;
+    }
+    .dots span{
+      display:inline-block;
+      width:6px;
+      height:6px;
+      margin:0 2px;
+      background:var(--muted);
+      border-radius:50%;
+      animation: blink 1.2s infinite;
+    }
+    .dots span:nth-child(2){ animation-delay:0.15s }
+    .dots span:nth-child(3){ animation-delay:0.3s }
+    @keyframes blink{
+      0%{ transform:translateY(0); opacity:0.35 }
+      50%{ transform:translateY(-6px); opacity:1 }
+      100%{ transform:translateY(0); opacity:0.35 }
+    }
+
+    /* small footer */
+    .hint{
+      margin-top:12px;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    /* responsive */
+    @media (max-width:420px){
+      .card{ width:92%; padding:20px }
+      .pdf-blob{ width:100px; height:100px }
+    }
+  </style>
+</head>
+<body>
+  <div class="card" role="status" aria-live="polite">
+    <div class="pdf-blob" aria-hidden="true">
+      <div class="pdf-icon" title="PDF">
+        <div class="pdf-label">PDF</div>
+      </div>
+
+      <div class="arrow-wrap" aria-hidden="true">
+        <!-- simple arrow svg -->
+        <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+      </div>
+    </div>
+
+    <div class="title">Your file is downloading</div>
+    <div class="sub">Preparing your PDF — this will only take a moment</div>
+
+    <div class="progress" aria-hidden="true">
+      <i id="bar"></i>
+    </div>
+
+    <div class="please">
+      <span>Please wait</span>
+      <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
+    </div>
+
+    <div class="hint" id="percent" aria-hidden="true">0%</div>
+  </div>
+
+  <script>
+    // Simulated progress — tweak timing here. Keeps showing "Please wait".
+    (function(){
+      const bar = document.getElementById('bar');
+      const pct = document.getElementById('percent');
+      let value = 0;
+
+      // non-linear progress to feel more realistic
+      function tick(){
+        // slow increments at the start, faster in middle, slow near end
+        let step;
+        if (value < 10) step = Math.random()*4 + 1;         // small early
+        else if (value < 60) step = Math.random()*6 + 3;    // faster
+        else if (value < 90) step = Math.random()*3 + 1.5; // slowing
+        else step = Math.random()*0.7 + 0.1;               // slow finish
+
+        value = Math.min(100, +(value + step).toFixed(2));
+        bar.style.width = value + "%";
+        pct.textContent = Math.round(value) + "%";
+
+        // keep animating; if reached 100, optionally stay or loop subtle glow
+        if (value < 100){
+          // next tick between 220-700ms
+          setTimeout(tick, 220 + Math.random()*480);
+        } else {
+          // keep at 100% but animate a little glow pulse
+          bar.style.transition = 'width 600ms cubic-bezier(.2,.9,.3,1)';
+          // no further changes; "Please wait" text remains per user's ask
+        }
+      }
+
+      // start a little after load
+      setTimeout(tick, 500);
+
+      // Accessibility: announce progress updates for screen readers
+      const card = document.querySelector('.card');
+      let lastAnnounced = 0;
+      setInterval(() => {
+        const p = Math.round(value);
+        if (p !== lastAnnounced) {
+          card.setAttribute('aria-label', 'Download progress ' + p + ' percent. Please wait.');
+          lastAnnounced = p;
+        }
+      }, 800);
+    })();
+  </script>
+</body>
+</html>
